@@ -1,0 +1,108 @@
+{
+  "seminars": [
+    {
+      "title": "花火の撮り方・現像セミナー",
+      "date": "2026-08-02",
+      "timeSlot": "午前",
+      "participants": [
+        {
+          "name": " 粟井 智",
+          "email": "sae123567@icloud.com",
+          "instaId": "未設定",
+          "instaName": "名前なし",
+          "url": "#",
+          "from": "",
+          "gender": "女性",
+          "memo": "ホームページからお申し込み"
+        }
+      ]
+    },
+    {
+      "title": "花火の撮り方・現像セミナー",
+      "date": "2026-08-02",
+      "timeSlot": "午後",
+      "participants": [
+        {
+          "name": "金澤 寿里",
+          "furigana": "かなざわ じゅり",
+          "email": "",
+          "instaId": "junori_moco_theo",
+          "instaName": "ジュノリ",
+          "url": "https://instagram.com/junori_moco_theo",
+          "from": "兵庫県加古川市",
+          "gender": "女性",
+          "memo": ""
+        },
+        {
+          "name": "植岡 功治",
+          "furigana": "うえおか こうじ",
+          "email": "",
+          "instaId": "kochan_ueoka",
+          "instaName": "コーちゃん",
+          "url": "https://instagram.com/kochan_ueoka",
+          "from": "兵庫県姫路市飾磨区",
+          "gender": "男性",
+          "memo": "寿里さんのご紹介"
+        }
+      ]
+    },
+    {
+      "title": "花火の撮り方・現像セミナー",
+      "date": "2026-07-19",
+      "timeSlot": "午前",
+      "participants": [
+        {
+          "name": "門脇 飛翔",
+          "furigana": "かどわき つばさ",
+          "email": "",
+          "instaId": "ts_camen",
+          "instaName": "ts_camen",
+          "url": "https://instagram.com/ts_camen",
+          "from": "",
+          "gender": "男性",
+          "memo": ""
+        },
+        {
+          "name": "植岡 功治",
+          "email": "",
+          "instaId": "kochan_ueoka",
+          "instaName": "コーちゃん",
+          "url": "https://instagram.com/kochan_ueoka",
+          "from": "兵庫県姫路市飾磨区",
+          "gender": "男性",
+          "memo": "寿里さんのご紹介"
+        }
+      ]
+    }
+  ],
+  "customers": [
+    {
+      "name": "金澤 寿里",
+      "email": "",
+      "instaId": "junori_moco_theo",
+      "instaName": "ジュノリ",
+      "from": "兵庫県加古川市",
+      "gender": "女性",
+      "memo": ""
+    },
+    {
+      "name": "植岡 功治",
+      "email": "",
+      "instaId": "kochan_ueoka",
+      "instaName": "コーちゃん",
+      "from": "兵庫県姫路市飾磨区",
+      "gender": "男性",
+      "memo": "寿里さんのご紹介"
+    },
+    {
+      "name": "門脇 飛翔",
+      "furigana": "",
+      "email": "",
+      "instaId": "ts_camera",
+      "instaName": "ts_camen",
+      "from": "",
+      "gender": "男性",
+      "memo": ""
+    }
+  ]
+}
