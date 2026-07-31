@@ -9,7 +9,6 @@
             --bg-color: #f0f2f5;
             --card-bg: #ffffff;
             --text-color: #333333;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         body {
@@ -31,6 +30,8 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         h1 {
@@ -38,12 +39,17 @@
             margin: 0;
         }
 
-        .add-btn {
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
             background-color: #007aff;
             color: white;
             border: none;
-            padding: 10px 16px;
-            font-size: 0.9rem;
+            padding: 8px 14px;
+            font-size: 0.85rem;
             font-weight: bold;
             border-radius: 20px;
             cursor: pointer;
@@ -51,8 +57,18 @@
             transition: background 0.2s;
         }
 
-        .add-btn:hover {
+        .btn:hover {
             background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #e4e6eb;
+            color: #4b4f56;
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d8dadf;
         }
 
         /* アプリグリッド（スマホのホーム画面風） */
@@ -78,10 +94,10 @@
         .app-icon {
             width: 64px;
             height: 64px;
-            border-radius: 14px;
-            object-fit: cover;
-            box-shadow: var(--shadow);
-            background-color: #fff;
+            object-fit: contain; /* 画像が歪まないように全体を表示 */
+            background: transparent; /* 背景を完全透明に */
+            box-shadow: none;
+            border-radius: 0;
             margin-bottom: 6px;
             transition: transform 0.1s;
         }
@@ -99,7 +115,7 @@
             width: 100%;
         }
 
-        /* 削除ボタン（長押しやホバー時など簡易的に常時右上に配置） */
+        /* 削除ボタン */
         .delete-btn {
             position: absolute;
             top: -5px;
@@ -162,14 +178,20 @@
         }
 
         .form-group input[type="text"],
-        .form-group input[type="url"],
-        .form-group input[type="file"] {
+        .form-group input[type="url"] {
             width: 100%;
             padding: 8px;
             box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 8px;
             font-size: 0.9rem;
+        }
+
+        .form-text {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 4px;
+            margin-bottom: 0;
         }
 
         .modal-actions {
@@ -187,14 +209,9 @@
             cursor: pointer;
         }
 
-        .btn-cancel {
-            background-color: #e4e6eb;
-            color: #4b4f56;
-        }
-
-        .btn-submit {
-            background-color: #007aff;
-            color: white;
+        /* 非表示のファイル入力（インポート用） */
+        #importFile {
+            display: none;
         }
     </style>
 </head>
@@ -202,7 +219,12 @@
 
     <header>
         <h1>My App Launcher</h1>
-        <button class="add-btn" onclick="openModal()">+ アプリ追加</button>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="exportData()">エクスポート</button>
+            <button class="btn btn-secondary" onclick="triggerImport()">インポート</button>
+            <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+            <button class="btn" onclick="openModal()">+ アプリ追加</button>
+        </div>
     </header>
 
     <!-- アプリ一覧が表示されるグリッド -->
@@ -222,12 +244,13 @@
                     <input type="url" id="appUrl" required placeholder="https://example.com">
                 </div>
                 <div class="form-group">
-                    <label>アイコン画像</label>
-                    <input type="file" id="appImage" accept="image/*" required>
+                    <label>画像ファイル名 / パス</label>
+                    <input type="text" id="appImage" required placeholder="例: icon.png や https://...">
+                    <p class="form-text">※ HTMLと同じ階層にある場合はファイル名（例: <code>app.png</code>）を入力</p>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" onclick="closeModal()">キャンセル</button>
-                    <button type="submit" class="btn-submit">登録</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">キャンセル</button>
+                    <button type="submit" class="btn" style="background-color: #007aff; color: white;">登録</button>
                 </div>
             </form>
         </div>
@@ -249,7 +272,7 @@
                 
                 item.innerHTML = `
                     <a href="${app.url}" target="_blank" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; width: 100%;">
-                        <img src="${app.image}" class="app-icon" alt="${app.name}">
+                        <img src="${app.image}" class="app-icon" alt="${app.name}" onerror="this.src='https://via.placeholder.com/64?text=NoImage'">
                         <span class="app-name">${app.name}</span>
                     </a>
                     <button class="delete-btn" onclick="deleteApp(event, ${index})">×</button>
@@ -275,28 +298,19 @@
             
             const name = document.getElementById('appName').value;
             const url = document.getElementById('appUrl').value;
-            const imageFile = document.getElementById('appImage').files[0];
+            const image = document.getElementById('appImage').value.trim();
 
-            if (imageFile) {
-                const reader = new FileReader();
-                // 画像ファイルをBase64文字列に変換
-                reader.onload = function(e) {
-                    const base64Image = e.target.result;
-                    
-                    apps.push({
-                        name: name,
-                        url: url,
-                        image: base64Image
-                    });
+            apps.push({
+                name: name,
+                url: url,
+                image: image
+            });
 
-                    // LocalStorageに保存
-                    localStorage.setItem('web_apps', JSON.stringify(apps));
-                    
-                    renderApps();
-                    closeModal();
-                };
-                reader.readAsDataURL(imageFile);
-            }
+            // LocalStorageに保存
+            localStorage.setItem('web_apps', JSON.stringify(apps));
+            
+            renderApps();
+            closeModal();
         }
 
         // アプリの削除
@@ -307,6 +321,49 @@
                 localStorage.setItem('web_apps', JSON.stringify(apps));
                 renderApps();
             }
+        }
+
+        // データの書き出し（エクスポート）
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apps, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "app_launcher_data.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // インポート用ファイル選択を開く
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
+        // データの読み込み（インポート）
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedApps = JSON.parse(e.target.result);
+                    if (Array.isArray(importedApps)) {
+                        if (confirm('現在の登録内容に上書きしますか？\n「OK」で上書きします。')) {
+                            apps = importedApps;
+                            localStorage.setItem('web_apps', JSON.stringify(apps));
+                            renderApps();
+                            alert('インポートが完了しました！');
+                        }
+                    } else {
+                        alert('ファイル形式が正しくありません。');
+                    }
+                } catch (err) {
+                    alert('JSONファイルの読み込みに失敗しました。');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
         }
 
         // 初期描画実行
