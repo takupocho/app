@@ -94,8 +94,8 @@
         .app-icon {
             width: 64px;
             height: 64px;
-            object-fit: contain; /* 画像が歪まないように全体を表示 */
-            background: transparent; /* 背景を完全透明に */
+            object-fit: contain;
+            background: transparent;
             box-shadow: none;
             border-radius: 0;
             margin-bottom: 6px;
@@ -209,7 +209,6 @@
             cursor: pointer;
         }
 
-        /* 非表示のファイル入力（インポート用） */
         #importFile {
             display: none;
         }
@@ -257,9 +256,7 @@
     </div>
 
     <script>
-        // ローカルストレージからアプリデータを取得（なければ空配列）
-        let apps = JSON.parse(localStorage.getItem('web_apps')) || [];
-
+        let apps = [];
         const appGrid = document.getElementById('appGrid');
         const addModal = document.getElementById('addModal');
 
@@ -279,6 +276,24 @@
                 `;
                 appGrid.appendChild(item);
             });
+        }
+
+        // 初期化処理（起動時に同一階層の app_launcher_data.json を読み込む）
+        async function initApp() {
+            try {
+                const response = await fetch('app_launcher_data.json');
+                if (response.ok) {
+                    apps = await response.json();
+                    // 読み込んだ内容をLocalStorageにも同期しておく
+                    localStorage.setItem('web_apps', JSON.stringify(apps));
+                } else {
+                    throw new Error('JSON not found');
+                }
+            } catch (error) {
+                // ファイルが存在しない、または何らかのエラーの場合はLocalStorageからフォールバック読み込み
+                apps = JSON.parse(localStorage.getItem('web_apps')) || [];
+            }
+            renderApps();
         }
 
         // モーダルを開く
@@ -306,9 +321,7 @@
                 image: image
             });
 
-            // LocalStorageに保存
             localStorage.setItem('web_apps', JSON.stringify(apps));
-            
             renderApps();
             closeModal();
         }
@@ -366,8 +379,8 @@
             reader.readAsText(file);
         }
 
-        // 初期描画実行
-        renderApps();
+        // 起動実行
+        initApp();
     </script>
 </body>
 </html>
