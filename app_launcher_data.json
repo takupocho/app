@@ -1,0 +1,17 @@
+[
+  {
+    "name": "GAS",
+    "url": "https://takupocho.github.io/gas/",
+    "image": "https://takupocho.github.io/gas/icon.png"
+  },
+  {
+    "name": "SonyStore",
+    "url": "https://takupocho.github.io/sstore_simu/",
+    "image": "https://takupocho.github.io/sstore_simu/icon.png"
+  },
+  {
+    "name": "Milkyway",
+    "url": "https://takupocho.github.io/milkyway/",
+    "image": "https://takupocho.github.io/milkyway/icon.png"
+  }
+]
