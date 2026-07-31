@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WEBアプリ ランチャー</title>
+
+    <!-- ▼ iPhoneホーム画面用アイコンの設定 ▼ -->
+    <link rel="apple-touch-icon" href="https://takupocho.github.io/app/icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ランチャー">
+    <!-- ▲ここまで追加 ▲ -->
+
     <style>
         :root {
             --bg-color: #f0f2f5;
@@ -43,7 +51,6 @@
             margin: 0;
         }
 
-        /* 歯車ボタン */
         .settings-btn {
             background: none;
             border: none;
@@ -101,7 +108,6 @@
             background-color: #d32f2f;
         }
 
-        /* アプリグリッド（スマホのホーム画面風） */
         .app-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -145,7 +151,6 @@
             width: 100%;
         }
 
-        /* モーダル共通 */
         .modal {
             display: none;
             position: fixed;
@@ -176,7 +181,6 @@
             margin-bottom: 16px;
         }
 
-        /* 設定メニューのリスト */
         .settings-menu {
             display: flex;
             flex-direction: column;
@@ -184,7 +188,6 @@
             margin-bottom: 20px;
         }
 
-        /* 編集モーダル内のアプリ一覧行 */
         .edit-app-row {
             display: flex;
             align-items: center;
@@ -277,10 +280,8 @@
         </div>
     </header>
 
-    <!-- アプリ一覧が表示されるグリッド -->
     <div class="app-grid" id="appGrid"></div>
 
-    <!-- 設定モーダル（メニュー） -->
     <div class="modal" id="settingsModal">
         <div class="modal-content">
             <h2>設定・管理</h2>
@@ -296,10 +297,8 @@
         </div>
     </div>
 
-    <!-- インポート用の隠しファイルinput -->
     <input type="file" id="importFile" accept=".json" onchange="importData(event)">
 
-    <!-- アプリ追加 / 編集 共通モーダル -->
     <div class="modal" id="appModal">
         <div class="modal-content">
             <h2 id="modalTitle">アプリを追加</h2>
@@ -316,7 +315,7 @@
                 <div class="form-group">
                     <label>画像ファイル名 / パス</label>
                     <input type="text" id="appImage" required placeholder="例: icon.png や https://...">
-                    <p class="form-text">※ HTMLと同じ階層にある場合はファイル名（例: <code>app.png</code>）を入力</p>
+                    <p class="form-text">※ HTMLと同じ階層にある場合はファイル名を入力</p>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeAppModal()">キャンセル</button>
@@ -326,13 +325,10 @@
         </div>
     </div>
 
-    <!-- 編集・削除用のアプリ一覧モーダル -->
     <div class="modal" id="editListModal">
         <div class="modal-content">
             <h2>アプリの編集・削除</h2>
-            <div id="editAppListContainer" style="margin-bottom: 20px;">
-                <!-- JavaScriptで動的にリスト生成 -->
-            </div>
+            <div id="editAppListContainer" style="margin-bottom: 20px;"></div>
             <div style="text-align: right;">
                 <button class="btn btn-secondary" onclick="closeEditListModal()">戻る</button>
             </div>
@@ -342,18 +338,15 @@
     <script>
         let apps = [];
         const appGrid = document.getElementById('appGrid');
-        
         const settingsModal = document.getElementById('settingsModal');
         const appModal = document.getElementById('appModal');
         const editListModal = document.getElementById('editListModal');
 
-        // 画面描画
         function renderApps() {
             appGrid.innerHTML = '';
             apps.forEach((app, index) => {
                 const item = document.createElement('div');
                 item.className = 'app-item';
-                
                 item.innerHTML = `
                     <a href="${app.url}" target="_blank" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; width: 100%;">
                         <img src="${app.image}" class="app-icon" alt="${app.name}" onerror="this.src='https://via.placeholder.com/64?text=NoImage'">
@@ -364,7 +357,6 @@
             });
         }
 
-        // 初期化処理（起動時に同一階層の app_launcher_data.json を読み込む）
         async function initApp() {
             try {
                 const response = await fetch('app_launcher_data.json');
@@ -380,15 +372,9 @@
             renderApps();
         }
 
-        // --- 設定メニューモーダル ---
-        function openSettingsModal() {
-            settingsModal.style.display = 'flex';
-        }
-        function closeSettingsModal() {
-            settingsModal.style.display = 'none';
-        }
+        function openSettingsModal() { settingsModal.style.display = 'flex'; }
+        function closeSettingsModal() { settingsModal.style.display = 'none'; }
 
-        // --- アプリ追加・編集モーダル ---
         function openAddModal() {
             closeSettingsModal();
             document.getElementById('modalTitle').innerText = 'アプリを追加';
@@ -408,25 +394,18 @@
             appModal.style.display = 'flex';
         }
 
-        function closeAppModal() {
-            appModal.style.display = 'none';
-            document.getElementById('appForm').reset();
-        }
+        function closeAppModal() { appModal.style.display = 'none'; document.getElementById('appForm').reset(); }
 
-        // アプリ保存（追加・更新兼務）
         function saveApp(event) {
             event.preventDefault();
-            
             const name = document.getElementById('appName').value;
             const url = document.getElementById('appUrl').value;
             const image = document.getElementById('appImage').value.trim();
             const editIndex = document.getElementById('editIndex').value;
 
             if (editIndex === "") {
-                // 追加
                 apps.push({ name, url, image });
             } else {
-                // 更新
                 apps[editIndex] = { name, url, image };
             }
 
@@ -435,7 +414,6 @@
             closeAppModal();
         }
 
-        // --- 編集・削除一覧モーダル ---
         function openEditListModal() {
             closeSettingsModal();
             const container = document.getElementById('editAppListContainer');
@@ -463,21 +441,17 @@
             editListModal.style.display = 'flex';
         }
 
-        function closeEditListModal() {
-            editListModal.style.display = 'none';
-        }
+        function closeEditListModal() { editListModal.style.display = 'none'; }
 
-        // アプリ削除
         function deleteApp(index) {
             if (confirm(`「${apps[index].name}」を削除しますか？`)) {
                 apps.splice(index, 1);
                 localStorage.setItem('web_apps', JSON.stringify(apps));
                 renderApps();
-                openEditListModal(); // リストを再描画
+                openEditListModal();
             }
         }
 
-        // --- エクスポート・インポート ---
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apps, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -488,9 +462,7 @@
             downloadAnchor.remove();
         }
 
-        function triggerImport() {
-            document.getElementById('importFile').click();
-        }
+        function triggerImport() { document.getElementById('importFile').click(); }
 
         function importData(event) {
             const file = event.target.files[0];
@@ -519,7 +491,6 @@
             reader.readAsText(file);
         }
 
-        // 起動実行
         initApp();
     </script>
 </body>
