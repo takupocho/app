@@ -1,1 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEBアプリ ランチャー</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .add-btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
+            transition: background 0.2s;
+        }
+
+        .add-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* アプリグリッド（スマホのホーム画面風） */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+        }
+
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-color);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .app-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            object-fit: cover;
+            box-shadow: var(--shadow);
+            background-color: #fff;
+            margin-bottom: 6px;
+            transition: transform 0.1s;
+        }
+
+        .app-item:active .app-icon {
+            transform: scale(0.95);
+        }
+
+        .app-name {
+            font-size: 0.75rem;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        /* 削除ボタン（長押しやホバー時など簡易的に常時右上に配置） */
+        .delete-btn {
+            position: absolute;
+            top: -5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .app-item:hover .delete-btn {
+            display: flex;
+        }
+
+        /* モーダルウィンドウ */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 360px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="url"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background-color: #e4e6eb;
+            color: #4b4f56;
+        }
+
+        .btn-submit {
+            background-color: #007aff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>My App Launcher</h1>
+        <button class="add-btn" onclick="openModal()">+ アプリ追加</button>
+    </header>
+
+    <!-- アプリ一覧が表示されるグリッド -->
+    <div class="app-grid" id="appGrid"></div>
+
+    <!-- アプリ追加モーダル -->
+    <div class="modal" id="addModal">
+        <div class="modal-content">
+            <h2>アプリを追加</h2>
+            <form id="appForm" onsubmit="saveApp(event)">
+                <div class="form-group">
+                    <label>アプリ名</label>
+                    <input type="text" id="appName" required placeholder="例: Todoアプリ">
+                </div>
+                <div class="form-group">
+                    <label>起動URL</label>
+                    <input type="url" id="appUrl" required placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>アイコン画像</label>
+                    <input type="file" id="appImage" accept="image/*" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">キャンセル</button>
+                    <button type="submit" class="btn-submit">登録</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ローカルストレージからアプリデータを取得（なければ空配列）
+        let apps = JSON.parse(localStorage.getItem('web_apps')) || [];
+
+        const appGrid = document.getElementById('appGrid');
+        const addModal = document.getElementById('addModal');
+
+        // 画面描画
+        function renderApps() {
+            appGrid.innerHTML = '';
+            apps.forEach((app, index) => {
+                const item = document.createElement('div');
+                item.className = 'app-item';
+                
+                item.innerHTML = `
+                    <a href="${app.url}" target="_blank" style="text-decoration: none; color: inherit; display: flex; flex-direction: column; align-items: center; width: 100%;">
+                        <img src="${app.image}" class="app-icon" alt="${app.name}">
+                        <span class="app-name">${app.name}</span>
+                    </a>
+                    <button class="delete-btn" onclick="deleteApp(event, ${index})">×</button>
+                `;
+                appGrid.appendChild(item);
+            });
+        }
+
+        // モーダルを開く
+        function openModal() {
+            addModal.style.display = 'flex';
+        }
+
+        // モーダルを閉じる
+        function closeModal() {
+            addModal.style.display = 'none';
+            document.getElementById('appForm').reset();
+        }
+
+        // アプリの保存処理
+        function saveApp(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('appName').value;
+            const url = document.getElementById('appUrl').value;
+            const imageFile = document.getElementById('appImage').files[0];
+
+            if (imageFile) {
+                const reader = new FileReader();
+                // 画像ファイルをBase64文字列に変換
+                reader.onload = function(e) {
+                    const base64Image = e.target.result;
+                    
+                    apps.push({
+                        name: name,
+                        url: url,
+                        image: base64Image
+                    });
+
+                    // LocalStorageに保存
+                    localStorage.setItem('web_apps', JSON.stringify(apps));
+                    
+                    renderApps();
+                    closeModal();
+                };
+                reader.readAsDataURL(imageFile);
+            }
+        }
+
+        // アプリの削除
+        function deleteApp(event, index) {
+            event.stopPropagation();
+            if (confirm('このアプリを削除しますか？')) {
+                apps.splice(index, 1);
+                localStorage.setItem('web_apps', JSON.stringify(apps));
+                renderApps();
+            }
+        }
+
+        // 初期描画実行
+        renderApps();
+    </script>
+</body>
+</html>
