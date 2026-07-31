@@ -13,5 +13,10 @@
     "name": "Milkyway",
     "url": "https://takupocho.github.io/milkyway/",
     "image": "https://takupocho.github.io/milkyway/icon.png"
+  },
+  {
+    "name": "セミナー",
+    "url": "https://takupocho.github.io/seminar/",
+    "image": "https://takupocho.github.io/seminar/icon.png"
   }
 ]
