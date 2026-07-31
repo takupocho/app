@@ -30,7 +30,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 30px;
-            flex-wrap: wrap;
+        }
+
+        .header-title-area {
+            display: flex;
+            align-items: center;
             gap: 10px;
         }
 
@@ -39,9 +43,22 @@
             margin: 0;
         }
 
-        .header-actions {
+        /* 歯車ボタン */
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: background 0.2s;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
         }
 
         .btn {
@@ -55,6 +72,9 @@
             cursor: pointer;
             box-shadow: 0 2px 6px rgba(0, 122, 255, 0.3);
             transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
         .btn:hover {
@@ -69,6 +89,16 @@
 
         .btn-secondary:hover {
             background-color: #d8dadf;
+        }
+
+        .btn-danger {
+            background-color: #ff3b30;
+            color: white;
+            box-shadow: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #d32f2f;
         }
 
         /* アプリグリッド（スマホのホーム画面風） */
@@ -115,29 +145,7 @@
             width: 100%;
         }
 
-        /* 削除ボタン */
-        .delete-btn {
-            position: absolute;
-            top: -5px;
-            right: 5px;
-            background: rgba(0, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 10px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-
-        .app-item:hover .delete-btn {
-            display: flex;
-        }
-
-        /* モーダルウィンドウ */
+        /* モーダル共通 */
         .modal {
             display: none;
             position: fixed;
@@ -156,14 +164,68 @@
             padding: 24px;
             border-radius: 16px;
             width: 90%;
-            max-width: 360px;
+            max-width: 380px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .modal-content h2 {
             margin-top: 0;
             font-size: 1.2rem;
             margin-bottom: 16px;
+        }
+
+        /* 設定メニューのリスト */
+        .settings-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        /* 編集モーダル内のアプリ一覧行 */
+        .edit-app-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            gap: 10px;
+        }
+
+        .edit-app-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .edit-app-thumb {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .edit-app-title {
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
         }
 
         .form-group {
@@ -201,14 +263,6 @@
             margin-top: 20px;
         }
 
-        .modal-actions button {
-            padding: 8px 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
         #importFile {
             display: none;
         }
@@ -217,23 +271,40 @@
 <body>
 
     <header>
-        <h1>My App Launcher</h1>
-        <div class="header-actions">
-            <button class="btn btn-secondary" onclick="exportData()">エクスポート</button>
-            <button class="btn btn-secondary" onclick="triggerImport()">インポート</button>
-            <input type="file" id="importFile" accept=".json" onchange="importData(event)">
-            <button class="btn" onclick="openModal()">+ アプリ追加</button>
+        <div class="header-title-area">
+            <h1>My App Launcher</h1>
+            <button class="settings-btn" onclick="openSettingsModal()" title="設定">⚙️</button>
         </div>
     </header>
 
     <!-- アプリ一覧が表示されるグリッド -->
     <div class="app-grid" id="appGrid"></div>
 
-    <!-- アプリ追加モーダル -->
-    <div class="modal" id="addModal">
+    <!-- 設定モーダル（メニュー） -->
+    <div class="modal" id="settingsModal">
         <div class="modal-content">
-            <h2>アプリを追加</h2>
+            <h2>設定・管理</h2>
+            <div class="settings-menu">
+                <button class="btn" onclick="openAddModal()">+ アプリ追加</button>
+                <button class="btn btn-secondary" onclick="openEditListModal()">アプリの編集・削除</button>
+                <button class="btn btn-secondary" onclick="exportData()">データをエクスポート</button>
+                <button class="btn btn-secondary" onclick="triggerImport()">データをインポート</button>
+            </div>
+            <div style="text-align: right;">
+                <button class="btn btn-secondary" onclick="closeSettingsModal()">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- インポート用の隠しファイルinput -->
+    <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+
+    <!-- アプリ追加 / 編集 共通モーダル -->
+    <div class="modal" id="appModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">アプリを追加</h2>
             <form id="appForm" onsubmit="saveApp(event)">
+                <input type="hidden" id="editIndex" value="">
                 <div class="form-group">
                     <label>アプリ名</label>
                     <input type="text" id="appName" required placeholder="例: Todoアプリ">
@@ -248,17 +319,33 @@
                     <p class="form-text">※ HTMLと同じ階層にある場合はファイル名（例: <code>app.png</code>）を入力</p>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal()">キャンセル</button>
-                    <button type="submit" class="btn" style="background-color: #007aff; color: white;">登録</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAppModal()">キャンセル</button>
+                    <button type="submit" class="btn">保存</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- 編集・削除用のアプリ一覧モーダル -->
+    <div class="modal" id="editListModal">
+        <div class="modal-content">
+            <h2>アプリの編集・削除</h2>
+            <div id="editAppListContainer" style="margin-bottom: 20px;">
+                <!-- JavaScriptで動的にリスト生成 -->
+            </div>
+            <div style="text-align: right;">
+                <button class="btn btn-secondary" onclick="closeEditListModal()">戻る</button>
+            </div>
         </div>
     </div>
 
     <script>
         let apps = [];
         const appGrid = document.getElementById('appGrid');
-        const addModal = document.getElementById('addModal');
+        
+        const settingsModal = document.getElementById('settingsModal');
+        const appModal = document.getElementById('appModal');
+        const editListModal = document.getElementById('editListModal');
 
         // 画面描画
         function renderApps() {
@@ -272,7 +359,6 @@
                         <img src="${app.image}" class="app-icon" alt="${app.name}" onerror="this.src='https://via.placeholder.com/64?text=NoImage'">
                         <span class="app-name">${app.name}</span>
                     </a>
-                    <button class="delete-btn" onclick="deleteApp(event, ${index})">×</button>
                 `;
                 appGrid.appendChild(item);
             });
@@ -284,59 +370,114 @@
                 const response = await fetch('app_launcher_data.json');
                 if (response.ok) {
                     apps = await response.json();
-                    // 読み込んだ内容をLocalStorageにも同期しておく
                     localStorage.setItem('web_apps', JSON.stringify(apps));
                 } else {
                     throw new Error('JSON not found');
                 }
             } catch (error) {
-                // ファイルが存在しない、または何らかのエラーの場合はLocalStorageからフォールバック読み込み
                 apps = JSON.parse(localStorage.getItem('web_apps')) || [];
             }
             renderApps();
         }
 
-        // モーダルを開く
-        function openModal() {
-            addModal.style.display = 'flex';
+        // --- 設定メニューモーダル ---
+        function openSettingsModal() {
+            settingsModal.style.display = 'flex';
+        }
+        function closeSettingsModal() {
+            settingsModal.style.display = 'none';
         }
 
-        // モーダルを閉じる
-        function closeModal() {
-            addModal.style.display = 'none';
+        // --- アプリ追加・編集モーダル ---
+        function openAddModal() {
+            closeSettingsModal();
+            document.getElementById('modalTitle').innerText = 'アプリを追加';
+            document.getElementById('appForm').reset();
+            document.getElementById('editIndex').value = '';
+            appModal.style.display = 'flex';
+        }
+
+        function openEditModal(index) {
+            closeEditListModal();
+            const app = apps[index];
+            document.getElementById('modalTitle').innerText = 'アプリを編集';
+            document.getElementById('appName').value = app.name;
+            document.getElementById('appUrl').value = app.url;
+            document.getElementById('appImage').value = app.image;
+            document.getElementById('editIndex').value = index;
+            appModal.style.display = 'flex';
+        }
+
+        function closeAppModal() {
+            appModal.style.display = 'none';
             document.getElementById('appForm').reset();
         }
 
-        // アプリの保存処理
+        // アプリ保存（追加・更新兼務）
         function saveApp(event) {
             event.preventDefault();
             
             const name = document.getElementById('appName').value;
             const url = document.getElementById('appUrl').value;
             const image = document.getElementById('appImage').value.trim();
+            const editIndex = document.getElementById('editIndex').value;
 
-            apps.push({
-                name: name,
-                url: url,
-                image: image
-            });
+            if (editIndex === "") {
+                // 追加
+                apps.push({ name, url, image });
+            } else {
+                // 更新
+                apps[editIndex] = { name, url, image };
+            }
 
             localStorage.setItem('web_apps', JSON.stringify(apps));
             renderApps();
-            closeModal();
+            closeAppModal();
         }
 
-        // アプリの削除
-        function deleteApp(event, index) {
-            event.stopPropagation();
-            if (confirm('このアプリを削除しますか？')) {
+        // --- 編集・削除一覧モーダル ---
+        function openEditListModal() {
+            closeSettingsModal();
+            const container = document.getElementById('editAppListContainer');
+            container.innerHTML = '';
+
+            if (apps.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; font-size:0.9rem;">登録されているアプリはありません。</p>';
+            } else {
+                apps.forEach((app, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'edit-app-row';
+                    row.innerHTML = `
+                        <div class="edit-app-info">
+                            <img src="${app.image}" class="edit-app-thumb" onerror="this.src='https://via.placeholder.com/32?text=?'">
+                            <span class="edit-app-title">${app.name}</span>
+                        </div>
+                        <div class="edit-actions">
+                            <button class="btn btn-secondary btn-small" onclick="openEditModal(${index})">編集</button>
+                            <button class="btn btn-danger btn-small" onclick="deleteApp(${index})">削除</button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+            editListModal.style.display = 'flex';
+        }
+
+        function closeEditListModal() {
+            editListModal.style.display = 'none';
+        }
+
+        // アプリ削除
+        function deleteApp(index) {
+            if (confirm(`「${apps[index].name}」を削除しますか？`)) {
                 apps.splice(index, 1);
                 localStorage.setItem('web_apps', JSON.stringify(apps));
                 renderApps();
+                openEditListModal(); // リストを再描画
             }
         }
 
-        // データの書き出し（エクスポート）
+        // --- エクスポート・インポート ---
         function exportData() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(apps, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -347,12 +488,10 @@
             downloadAnchor.remove();
         }
 
-        // インポート用ファイル選択を開く
         function triggerImport() {
             document.getElementById('importFile').click();
         }
 
-        // データの読み込み（インポート）
         function importData(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -367,6 +506,7 @@
                             localStorage.setItem('web_apps', JSON.stringify(apps));
                             renderApps();
                             alert('インポートが完了しました！');
+                            closeSettingsModal();
                         }
                     } else {
                         alert('ファイル形式が正しくありません。');
